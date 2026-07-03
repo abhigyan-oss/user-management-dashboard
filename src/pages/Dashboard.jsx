@@ -2,22 +2,52 @@ import { useEffect, useState } from "react";
 import { getUsers } from "../api/usersApi";
 import UserTable from "../components/UserTable";
 import SearchBar from "../components/SearchBar";
-import { sortUsers } from "../utils/sortUser";
+import FilterModal from "../components/FilterModal";
+import Pagination from "../components/Pagination";
+import UserForm from "../components/UserForm";
 
 function Dashboard() {
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
 
-  const [sortConfig, setSortConfig] = useState({
-    key: "",
-    direction: "asc",
-  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [department, setDepartment] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 100;
+
+  // New state
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    let result = [...users];
+
+    if (searchTerm.trim()) {
+      const value = searchTerm.toLowerCase();
+
+      result = result.filter(
+        (user) =>
+          user.firstName.toLowerCase().includes(value) ||
+          user.lastName.toLowerCase().includes(value) ||
+          user.email.toLowerCase().includes(value) ||
+          user.department.toLowerCase().includes(value)
+      );
+    }
+
+    if (department) {
+      result = result.filter((user) => user.department === department);
+    }
+
+    setFilteredUsers(result);
+    setCurrentPage(1);
+  }, [users, searchTerm, department]);
 
   async function fetchUsers() {
     try {
@@ -46,6 +76,7 @@ function Dashboard() {
       });
 
       setUsers(formattedUsers);
+      setFilteredUsers(formattedUsers);
     } catch (err) {
       setError("Failed to fetch users.");
     } finally {
@@ -53,34 +84,10 @@ function Dashboard() {
     }
   }
 
-  function handleSort(key) {
-    let direction = "asc";
+  const lastUserIndex = currentPage * usersPerPage;
+  const firstUserIndex = lastUserIndex - usersPerPage;
 
-    if (
-      sortConfig.key === key &&
-      sortConfig.direction === "asc"
-    ) {
-      direction = "desc";
-    }
-
-    setSortConfig({
-      key,
-      direction,
-    });
-  }
-
-  const filteredUsers = users.filter((user) => {
-    const search = searchTerm.toLowerCase();
-
-    return (
-      user.firstName.toLowerCase().includes(search) ||
-      user.lastName.toLowerCase().includes(search) ||
-      user.email.toLowerCase().includes(search) ||
-      user.department.toLowerCase().includes(search)
-    );
-  });
-
-  const sortedUsers = sortUsers(filteredUsers, sortConfig);
+  const currentUsers = filteredUsers.slice(firstUserIndex, lastUserIndex);
 
   if (loading) return <h2>Loading...</h2>;
 
@@ -90,21 +97,47 @@ function Dashboard() {
     <div className="dashboard">
       <h1>User Management Dashboard</h1>
 
-      <p className="total-users">
-        Total Users: {sortedUsers.length}
-      </p>
+      <p className="total-users">Total Users: {filteredUsers.length}</p>
+
+      <button
+        onClick={() => setShowForm(true)}
+        style={{
+          marginBottom: "20px",
+          padding: "10px 20px",
+          cursor: "pointer",
+        }}
+      >
+        Add User
+      </button>
 
       <SearchBar
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
       />
 
+      <FilterModal
+        department={department}
+        setDepartment={setDepartment}
+      />
+
       <div className="table-container">
-        <UserTable
-          users={sortedUsers}
-          onSort={handleSort}
-        />
+        <UserTable users={currentUsers} />
       </div>
+
+      <Pagination
+        totalUsers={filteredUsers.length}
+        usersPerPage={usersPerPage}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
+
+      {showForm && (
+        <UserForm
+          users={users}
+          setUsers={setUsers}
+          onClose={() => setShowForm(false)}
+        />
+      )}
     </div>
   );
 }

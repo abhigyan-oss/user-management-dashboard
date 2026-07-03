@@ -79,3 +79,23 @@
     cursor: pointer;
     user-select: none;
   }
+
+  .filter-select {
+    padding: 10px;
+    margin: 0 0 20px 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .pagination button {
+    padding: 8px 14px;
+  }
