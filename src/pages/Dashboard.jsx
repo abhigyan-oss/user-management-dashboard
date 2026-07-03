@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import { getUsers } from "../api/usersApi";
 import UserTable from "../components/UserTable";
+import SearchBar from "../components/SearchBar";
+import { sortUsers } from "../utils/sortUser";
 
 function Dashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const [sortConfig, setSortConfig] = useState({
+    key: "",
+    direction: "asc",
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -45,22 +53,57 @@ function Dashboard() {
     }
   }
 
-  if (loading) {
-    return <h2>Loading...</h2>;
+  function handleSort(key) {
+    let direction = "asc";
+
+    if (
+      sortConfig.key === key &&
+      sortConfig.direction === "asc"
+    ) {
+      direction = "desc";
+    }
+
+    setSortConfig({
+      key,
+      direction,
+    });
   }
 
-  if (error) {
-    return <h2>{error}</h2>;
-  }
+  const filteredUsers = users.filter((user) => {
+    const search = searchTerm.toLowerCase();
+
+    return (
+      user.firstName.toLowerCase().includes(search) ||
+      user.lastName.toLowerCase().includes(search) ||
+      user.email.toLowerCase().includes(search) ||
+      user.department.toLowerCase().includes(search)
+    );
+  });
+
+  const sortedUsers = sortUsers(filteredUsers, sortConfig);
+
+  if (loading) return <h2>Loading...</h2>;
+
+  if (error) return <h2>{error}</h2>;
 
   return (
     <div className="dashboard">
       <h1>User Management Dashboard</h1>
-  
-      <p className="total-users">Total Users: {users.length}</p>
-  
+
+      <p className="total-users">
+        Total Users: {sortedUsers.length}
+      </p>
+
+      <SearchBar
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
+
       <div className="table-container">
-        <UserTable users={users} />
+        <UserTable
+          users={sortedUsers}
+          onSort={handleSort}
+        />
       </div>
     </div>
   );

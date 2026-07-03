@@ -56,3 +56,26 @@
     background: #ef4444;
     color: white;
   }
+
+  .search-input {
+    width: 100%;
+    padding: 12px;
+    margin: 20px 0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 16px;
+    outline: none;
+  }
+  
+  .search-input:focus {
+    border-color: #2563eb;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+
+  th {
+    cursor: pointer;
+    user-select: none;
+  }

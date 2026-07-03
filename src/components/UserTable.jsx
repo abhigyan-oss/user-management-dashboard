@@ -1,13 +1,13 @@
-function UserTable({ users }) {
+function UserTable({ users, onSort }) {
     return (
       <table>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Email</th>
-            <th>Department</th>
+            <th onClick={() => onSort("id")}>ID ⬍</th>
+            <th onClick={() => onSort("firstName")}>First Name ⬍</th>
+            <th onClick={() => onSort("lastName")}>Last Name ⬍</th>
+            <th onClick={() => onSort("email")}>Email ⬍</th>
+            <th onClick={() => onSort("department")}>Department ⬍</th>
             <th>Actions</th>
           </tr>
         </thead>
