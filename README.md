@@ -1,16 +1,100 @@
-# React + Vite
+# User Management Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A responsive User Management Dashboard built with React and Vite. The application allows users to view, search, filter, sort, add, edit, and delete user records using the JSONPlaceholder REST API.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- View all users
+- Add new users
+- Edit existing users
+- Delete users
+- Search users
+- Filter users by department
+- Sort users by different columns
+- Pagination (10, 25, 50, 100 rows)
+- Responsive design
+- Form validation
+- Error handling
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React
+- Vite
+- JavaScript
+- Axios
+- CSS
 
-## Expanding the ESLint configuration
+## API
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The project uses the JSONPlaceholder API.
+
+https://jsonplaceholder.typicode.com/users
+
+## Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/abhigyan-oss/user-management-dashboard.git
+```
+
+Go to the project folder
+
+```bash
+cd user-management-dashboard
+```
+
+Install dependencies
+
+```bash
+npm install
+```
+
+Run the project
+
+```bash
+npm run dev
+```
+
+## Folder Structure
+
+```
+src/
+│
+├── api/
+├── components/
+│   ├── common/
+│   ├── UserForm.jsx
+│   ├── UserTable.jsx
+│   ├── Pagination.jsx
+│   ├── SearchBar.jsx
+│   └── FilterModal.jsx
+│
+├── hooks/
+├── pages/
+├── utils/
+├── constants/
+```
+
+## Challenges Faced
+
+- Mapping JSONPlaceholder data into the required structure.
+- Managing search, sorting, filtering, and pagination together.
+- Reusing the same form for Add and Edit operations.
+- Handling simulated CRUD operations using JSONPlaceholder.
+
+## Future Improvements
+
+- Authentication
+- Dark Mode
+- Unit Tests
+- Toast Notifications
+- Backend Integration with a real database
+
+## Live Demo
+
+(Add your Vercel deployment link here)
+
+## Author
+
+Abhigyan Jha

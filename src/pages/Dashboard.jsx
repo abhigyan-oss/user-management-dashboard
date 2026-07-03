@@ -5,49 +5,41 @@ import SearchBar from "../components/SearchBar";
 import FilterModal from "../components/FilterModal";
 import Pagination from "../components/Pagination";
 import UserForm from "../components/UserForm";
+import DeleteModal from "../components/DeleteModal";
+import { sortUsers } from "../utils/sortUser";
 
 function Dashboard() {
   const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Search
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Filter
   const [department, setDepartment] = useState("");
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 100;
+  // Sorting
+  const [sortConfig, setSortConfig] = useState({
+    key: "",
+    direction: "asc",
+  });
 
-  // New state
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Add / Edit Modal
   const [showForm, setShowForm] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+
+  // Delete Modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     fetchUsers();
   }, []);
-
-  useEffect(() => {
-    let result = [...users];
-
-    if (searchTerm.trim()) {
-      const value = searchTerm.toLowerCase();
-
-      result = result.filter(
-        (user) =>
-          user.firstName.toLowerCase().includes(value) ||
-          user.lastName.toLowerCase().includes(value) ||
-          user.email.toLowerCase().includes(value) ||
-          user.department.toLowerCase().includes(value)
-      );
-    }
-
-    if (department) {
-      result = result.filter((user) => user.department === department);
-    }
-
-    setFilteredUsers(result);
-    setCurrentPage(1);
-  }, [users, searchTerm, department]);
 
   async function fetchUsers() {
     try {
@@ -76,7 +68,6 @@ function Dashboard() {
       });
 
       setUsers(formattedUsers);
-      setFilteredUsers(formattedUsers);
     } catch (err) {
       setError("Failed to fetch users.");
     } finally {
@@ -84,10 +75,62 @@ function Dashboard() {
     }
   }
 
-  const lastUserIndex = currentPage * usersPerPage;
-  const firstUserIndex = lastUserIndex - usersPerPage;
+  function handleSort(key) {
+    let direction = "asc";
 
-  const currentUsers = filteredUsers.slice(firstUserIndex, lastUserIndex);
+    if (
+      sortConfig.key === key &&
+      sortConfig.direction === "asc"
+    ) {
+      direction = "desc";
+    }
+
+    setSortConfig({
+      key,
+      direction,
+    });
+  }
+
+  const filteredUsers = users.filter((user) => {
+    const search = searchTerm.toLowerCase();
+
+    const matchesSearch =
+      user.firstName.toLowerCase().includes(search) ||
+      user.lastName.toLowerCase().includes(search) ||
+      user.email.toLowerCase().includes(search);
+
+    const matchesDepartment =
+      department === "" || user.department === department;
+
+    return matchesSearch && matchesDepartment;
+  });
+
+  const sortedUsers = sortUsers(filteredUsers, sortConfig);
+
+  const totalPages = Math.ceil(sortedUsers.length / rowsPerPage);
+
+  const startIndex = (currentPage - 1) * rowsPerPage;
+
+  const paginatedUsers = sortedUsers.slice(
+    startIndex,
+    startIndex + rowsPerPage
+  );
+
+  function handleEdit(user) {
+    setEditingUser(user);
+    setShowForm(true);
+  }
+
+  function handleDelete(user) {
+    setSelectedUser(user);
+    setShowDeleteModal(true);
+  }
+
+  function confirmDelete() {
+    setUsers(users.filter((user) => user.id !== selectedUser.id));
+    setShowDeleteModal(false);
+    setSelectedUser(null);
+  }
 
   if (loading) return <h2>Loading...</h2>;
 
@@ -97,45 +140,77 @@ function Dashboard() {
     <div className="dashboard">
       <h1>User Management Dashboard</h1>
 
-      <p className="total-users">Total Users: {filteredUsers.length}</p>
+      <p className="total-users">
+        Total Users: {sortedUsers.length}
+      </p>
 
-      <button
-        onClick={() => setShowForm(true)}
+      <div
         style={{
+          display: "flex",
+          gap: "15px",
+          flexWrap: "wrap",
+          alignItems: "center",
           marginBottom: "20px",
-          padding: "10px 20px",
-          cursor: "pointer",
         }}
       >
-        Add User
-      </button>
+        <SearchBar
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
 
-      <SearchBar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+        <FilterModal
+          department={department}
+          setDepartment={setDepartment}
+        />
 
-      <FilterModal
-        department={department}
-        setDepartment={setDepartment}
-      />
+        <button
+          className="primary-btn"
+          onClick={() => {
+            setEditingUser(null);
+            setShowForm(true);
+          }}
+        >
+          + Add User
+        </button>
+      </div>
 
       <div className="table-container">
-        <UserTable users={currentUsers} />
+        <UserTable
+          users={paginatedUsers}
+          onSort={handleSort}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </div>
 
       <Pagination
-        totalUsers={filteredUsers.length}
-        usersPerPage={usersPerPage}
         currentPage={currentPage}
+        totalPages={totalPages}
         setCurrentPage={setCurrentPage}
+        rowsPerPage={rowsPerPage}
+        setRowsPerPage={setRowsPerPage}
       />
 
       {showForm && (
         <UserForm
           users={users}
           setUsers={setUsers}
-          onClose={() => setShowForm(false)}
+          editingUser={editingUser}
+          setEditingUser={setEditingUser}
+          onClose={() => {
+            setShowForm(false);
+            setEditingUser(null);
+          }}
+        />
+      )}
+
+      {showDeleteModal && (
+        <DeleteModal
+          onConfirm={confirmDelete}
+          onCancel={() => {
+            setShowDeleteModal(false);
+            setSelectedUser(null);
+          }}
         />
       )}
     </div>
